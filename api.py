@@ -1,8 +1,5 @@
-import fastapi
-import uvicorn
-
-# import FastAPI
 from fastapi import FastAPI
+import uvicorn
 
 # create a FastAPI instance
 app = FastAPI()
@@ -13,3 +10,7 @@ app = FastAPI()
 # define the path operation function
 def root():
 	return {'message': 'qr_data'}
+
+
+if __name__ == "__main__":
+	uvicorn.run('api:app', port=80)
