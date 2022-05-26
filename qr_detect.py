@@ -2,8 +2,9 @@ import os
 
 import cv2
 import numpy as np
-from pyzbar.pyzbar import decode
+from pyzbar.pyzbar import decode, ZBarSymbol
 
+import matplotlib.pyplot as plt
 
 def decoder(image: np.ndarray) -> str:
     """
@@ -12,8 +13,8 @@ def decoder(image: np.ndarray) -> str:
     :param image: cv2 image
     :return: str
     """
-    gray_img = cv2.cvtColor(image,0)
-    barcode = decode(gray_img)
+    # gray_img = cv2.cvtColor(image, 0)
+    barcode = decode(image, symbols=[ZBarSymbol.QRCODE])
 
     for obj in barcode:
         points = obj.polygon
@@ -27,9 +28,12 @@ def decoder(image: np.ndarray) -> str:
         print("Barcode: " + barcodeData +" | Type: " + barcodeType)
 
 
-path = 'qr_codes/'
+path = './qr_codes/'
+print(os.listdir(os.curdir))
 for img_name in os.listdir(path):
     print(f'Image name: {img_name}')
     img_path = path + img_name
-    img = cv2.imread(img_path)
-    decoder(img)
+    img = cv2.imread(img_path, cv2.QRCODE_ENCODER_ECI_UTF8)
+    plt.imshow(img)
+    plt.show()
+    #decoder(img)
