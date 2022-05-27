@@ -1,39 +1,53 @@
-import os
+import base64
+import binascii
 
-import cv2
-import numpy as np
 from pyzbar.pyzbar import decode, ZBarSymbol
+from fastapi import FastAPI, Request
+import numpy as np
+import uvicorn
+import cv2
 
-import matplotlib.pyplot as plt
 
-def decoder(image: np.ndarray) -> str:
+app = FastAPI()
+
+
+@app.post('/status')
+async def get_status():
+    return {'status': 'OK'}
+
+
+@app.post('/decode_qr')
+async def decoder(image: Request):
     """
     Recognize QR in cv2 image format
 
     :param image: cv2 image
     :return: str
     """
-    # gray_img = cv2.cvtColor(image, 0)
-    barcode = decode(image, symbols=[ZBarSymbol.QRCODE])
+    image = await image.body()
+    # decode image from base64
+    try:
+        image = base64.b64decode(image)
+    except binascii.Error:
+        return {'response': 'base64 decode error'}
 
-    for obj in barcode:
-        points = obj.polygon
-        pts = np.array(points, np.int32)
-        pts = pts.reshape((-1, 1, 2))
-        cv2.polylines(image, [pts], True, (0, 255, 0), 3)
-        barcodeData = obj.data.decode("utf-8")
-        barcodeType = obj.type
-        # string = "Data " + str(barcodeData) + " | Type " + str(barcodeType)
-        # cv2.putText(frame, string, (x,y), cv2.FONT_HERSHEY_SIMPLEX,0.8,(255,0,0), 2)
-        print("Barcode: " + barcodeData +" | Type: " + barcodeType)
+    image = np.frombuffer(image, dtype=np.uint8)
+    image = cv2.imdecode(image, cv2.IMREAD_GRAYSCALE) #cv2.QRCODE_ENCODER_ECI_UTF8)
+
+    try:
+        qr_code = decode(image, symbols=[ZBarSymbol.QRCODE])
+    except Exception:
+        return {'response': 'qr-code decode error'}
+
+    if len(qr_code) > 0:
+        for qr in qr_code:
+            if qr.type == 'QRCODE':
+                barcodeData = qr.data.decode("utf-8")
+                return {'response': barcodeData}
+            else:
+                return {'response': 'no QR-code detect'}
+    else:
+        return {'response': 'no QR-code detect'}
 
 
-path = './qr_codes/'
-print(os.listdir(os.curdir))
-for img_name in os.listdir(path):
-    print(f'Image name: {img_name}')
-    img_path = path + img_name
-    img = cv2.imread(img_path, cv2.QRCODE_ENCODER_ECI_UTF8)
-    plt.imshow(img)
-    plt.show()
-    #decoder(img)
+uvicorn.run(app, port=80)
