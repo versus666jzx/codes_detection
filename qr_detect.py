@@ -11,18 +11,13 @@ import cv2
 app = FastAPI()
 
 
-@app.post('/status')
-async def get_status():
-    return {'status': 'OK'}
-
-
 @app.post('/decode_qr')
 async def decoder(image: Request):
     """
-    Recognize QR in cv2 image format
+    Recognize and decode QR from base64 image
 
-    :param image: cv2 image
-    :return: str
+    :param image: base64 image string
+    :return: dict
     """
     image = await image.body()
     # decode image from base64
@@ -50,4 +45,5 @@ async def decoder(image: Request):
         return {'response': 'no QR-code detect'}
 
 
-uvicorn.run(app, port=80)
+if __name__ == "__main__":
+    uvicorn.run(app, port=80)
