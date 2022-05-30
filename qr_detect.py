@@ -28,6 +28,8 @@ async def decoder(image: Request):
         image = base64.b64decode(image)
     except binascii.Error:
         return {'response': 'base64 decode error'}
+    except Exception as err:
+        return {'response': f'base64 unknown error: {err}'}
 
     # convert decoded image to numpy array
     image = np.frombuffer(image, dtype=np.uint8)
