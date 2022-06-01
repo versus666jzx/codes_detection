@@ -3,6 +3,7 @@ import binascii
 import asyncio
 
 from pyzbar.pyzbar import decode, ZBarSymbol
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Request
 import numpy as np
 import uvicorn
@@ -10,6 +11,16 @@ import cv2
 
 
 app = FastAPI()
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.post('/decode_qr')
